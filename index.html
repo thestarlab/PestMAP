@@ -1,0 +1,262 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+	<title>GeoPest</title>
+	<link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/light/main.css" />
+	<link rel="stylesheet" href="style.css" />
+	<script src="https://js.arcgis.com/4.24/"></script>
+	<script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+	<header class="site-header">
+		<div>
+    <div id="titleText">GeoPest: Geospatial Intelligence for Pest Monitoring and Prediction</div>
+			<div class="tagline">An interactive platform for exploring predicted pest population density, distribution, and long-term dynamics.</div>
+		</div>
+	</header>
+
+	<nav class="tab-bar" aria-label="GeoPest sections">
+		<button class="tab-button active" type="button" data-tab="introTab">Introduction</button>
+		<button class="tab-button" type="button" data-tab="pestTab">Pest Information</button>
+		<button class="tab-button" type="button" data-tab="mapTab">WebGIS Map</button>
+		<button class="tab-button" type="button" data-tab="animationTab">Pest Dynamics</button>
+	</nav>
+
+	<main class="tab-layout">
+		<section id="introTab" class="tab-panel active">
+			<div class="content-page">
+				<h1>Project Introduction</h1>
+				<p>
+					GeoPest is designed to support geospatial monitoring and prediction of agricultural pest activity.
+					The current version focuses on Mormon cricket density estimates and related environmental factors
+					across selected western U.S. states.
+				</p>
+
+				<h2>Using GeoPest</h2>
+				<p>
+					Use Pest Information to review pest descriptions and reference images. In WebGIS Map, select the
+					pest type, year, state, environmental factor, and boundary layer to compare density estimates with
+					environmental context. Click a climate division to view sampling number, average density, maximum
+					density, and the subregion time series. Use Pest Dynamics to animate density patterns across years
+					and selected states.
+				</p>
+
+				<h2>Data And Tools</h2>
+				<ul>
+					<li>Estimated pest density layers hosted in ArcGIS Online.</li>
+					<li>Environmental layers including precipitation, soil moisture, temperature, days 20-35 °C, NDVI, elevation, slope, aspect, and TRI.</li>
+					<li>Climate division boundaries for subregion-level summaries.</li>
+					<li>Sampling number, average density, and maximum density summaries with interactive time-series charts.</li>
+					<li>Playback tools for visualizing year-to-year pest density dynamics.</li>
+				</ul>
+
+				<h2>Acknowledgement</h2>
+				<p>
+					This project uses survey-derived pest information, environmental datasets, and ArcGIS Online map
+					services to support research, visualization, and decision-making. Funding provided by
+					USDA-Animal and Plant Health Inspection Service (APHIS) and USDA-Agricultural Research Service
+					(ARS).
+				</p>
+
+				<div class="logo-row" aria-label="Project partner logos">
+					<div class="logo-card">
+						<img src="images/cu_boulder_logo.png" alt="University of Colorado Boulder logo" />
+						<div class="logo-fallback">CU Boulder</div>
+					</div>
+					<div class="logo-card">
+						<img src="images/usda_logo.png" alt="United States Department of Agriculture logo" />
+						<div class="logo-fallback">USDA</div>
+					</div>
+				</div>
+
+				<div class="disclaimer-block">
+					<p>
+						Publicly available boundary, environmental, and topographic datasets were used to develop this
+						application. The Mormon cricket survey data used for model development were provided, in part,
+						through a Material Transfer Research Agreement with USDA APHIS and remain the sole property of
+						USDA APHIS. The density estimates and predictive maps presented herein are model-derived
+						products intended for research and educational purposes and do not constitute a release of the
+						underlying survey records. Basemap layers are provided through publicly available web mapping
+						services.
+					</p>
+					<p>
+						Developed by Di Wu, Department of Geography, University of Colorado Boulder.
+					</p>
+					<p>
+						Version 1.0 | Updated June 2026
+					</p>
+					<p>
+						For questions or comments, please contact: diwu8132@colorado.edu.
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<section id="pestTab" class="tab-panel">
+			<div class="content-page pest-page">
+				<div class="section-heading">
+					<h1>Pest Information</h1>
+					<div class="pest-selector">
+						<label for="pestInfoSelect">Select Pest Type</label>
+						<select id="pestInfoSelect" class="esri-select"></select>
+					</div>
+				</div>
+
+				<div class="pest-profile">
+					<div>
+						<div id="pestImageGallery" class="pest-image-gallery"></div>
+						<div id="pestImageCredit" class="image-credit"></div>
+					</div>
+
+					<div>
+						<h2 id="pestName">Mormon Cricket</h2>
+						<p id="pestDescription"></p>
+
+						<table class="infoTable">
+							<tr>
+								<th>Scientific Name</th>
+								<td id="pestScientificName"></td>
+							</tr>
+							<tr>
+								<th>Primary Concern</th>
+								<td id="pestConcern"></td>
+							</tr>
+							<tr>
+								<th>Current Map Availability</th>
+								<td id="pestMapAvailability"></td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section id="mapTab" class="tab-panel map-panel">
+			<div class="webgis-layout">
+				<aside id="controlDiv" class="selection-sidebar control-panel">
+					<div class="sidebar-title">Map Selections</div>
+
+					<label for="pestSelect">Pest Type</label>
+					<select id="pestSelect" class="esri-select"></select>
+
+					<label for="yearSelect">Year</label>
+					<select id="yearSelect" class="esri-select"></select>
+
+					<label for="stateSelect">State</label>
+					<select id="stateSelect" class="esri-select"></select>
+
+					<label for="bioSelect">Environmental Factor</label>
+					<select id="bioSelect" class="esri-select"></select>
+
+					<label for="boundarySelect">Boundary</label>
+					<select id="boundarySelect" class="esri-select"></select>
+
+					<label for="densityOpacity">Pest Density Transparency</label>
+					<div class="slider-row">
+						<input id="densityOpacity" type="range" min="0" max="100" value="0" />
+						<span id="densityOpacityValue">0%</span>
+					</div>
+
+					<div class="sidebar-note">
+						<div><b>NDVI</b>: Normalized Difference Vegetation Index.</div>
+						<div><b>TRI</b>: Terrain Ruggedness Index.</div>
+						<div><b>Days 20-35 °C</b>: count of days within this temperature range.</div>
+						<div><b>Climate Divisions</b>: NOAA climate regions used as subregions.</div>
+					</div>
+				</aside>
+
+				<div class="map-window">
+					<div id="summaryDiv" class="esri-widget app-panel summary-panel">
+						<div class="panelTitle">Subregion Summary</div>
+						<div id="summaryContent" class="summaryContent">
+							Click a subregion boundary to view statistics.
+						</div>
+						<div id="chartWrap" class="chartWrap hidden">
+							<div class="metricChart"><canvas id="samplingChart"></canvas></div>
+							<div class="metricChart"><canvas id="averageChart"></canvas></div>
+							<div class="metricChart"><canvas id="maximumChart"></canvas></div>
+						</div>
+					</div>
+
+					<div id="legendDiv" class="esri-widget app-panel legend-panel"></div>
+
+					<div id="viewDiv"></div>
+				</div>
+			</div>
+		</section>
+
+		<section id="animationTab" class="tab-panel map-panel">
+			<div class="webgis-layout">
+				<aside class="selection-sidebar control-panel playback-panel">
+					<div class="sidebar-title">Playback Controls</div>
+
+					<label for="animationPestSelect">Pest Type</label>
+					<select id="animationPestSelect" class="esri-select"></select>
+
+					<label>States</label>
+					<details class="multi-select animation-state-select">
+						<summary id="animationStateSummary">Wyoming</summary>
+						<div id="animationStateOptions" class="checkbox-group"></div>
+					</details>
+
+					<label for="animationYearRange">Year</label>
+					<div class="slider-row">
+						<input id="animationYearRange" type="range" min="0" max="18" value="0" />
+						<span id="animationYearLabel">2002</span>
+					</div>
+
+					<label for="animationSpeedSelect">Speed</label>
+					<select id="animationSpeedSelect" class="esri-select">
+						<option value="1500">Slow</option>
+						<option value="900" selected>Medium</option>
+						<option value="450">Fast</option>
+					</select>
+
+					<button id="animationPlayButton" class="action-button" type="button">Play</button>
+				</aside>
+
+				<div class="map-window">
+					<div id="animationTitleDiv" class="esri-widget app-panel animation-title-panel">
+						<div class="panelTitle">Density Time Series</div>
+						<div id="animationStatus">Mormon Cricket Density in Wyoming 2002</div>
+					</div>
+					<div id="animationLegendDiv" class="esri-widget app-panel animation-legend-panel">
+						<div class="panelTitle">Estimated Mormon Cricket Density</div>
+						<div class="legend-unit">Count/sq.m</div>
+						<div class="manual-legend-row">
+							<img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQElEQVQ4jWNhoDJgoZmBX78y/KfEIG5uBkYUA6kFWEYNpBiwUG4EKhg1kHLAQgUzUMCogZQDeBjCyjOqGUgtAAAQGwNoNm7L9QAAAABJRU5ErkJggg==" />
+							<span>0-&lt;4</span>
+						</div>
+						<div class="manual-legend-row">
+							<img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQElEQVQ4jWNhoDJgoZmBX3cw/KfEIG4PBkYUA6kFWEYNpBiwUG4EKhg1kHLAQgUzUMCogZQDeBjCyjOqGUgtAAAlEwOlkvSOXwAAAABJRU5ErkJggg==" />
+							<span>4-&lt;10</span>
+						</div>
+						<div class="manual-legend-row">
+							<img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQElEQVQ4jWNhoDJgoZmBX6sY/lNiEHcbAyOKgdQCLKMGUgxYKDcCFYwaSDlgoYIZKGDUQMoBPAxh5RnVDKQWAAA6YwPj5nJl0AAAAABJRU5ErkJggg==" />
+							<span>10-&lt;18</span>
+						</div>
+						<div class="manual-legend-row">
+							<img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAQElEQVQ4jWNhoDJgoZmBX20Z/lNiEPdhBkYUA6kFWEYNpBiwUG4EKhg1kHLAQgUzUMCogZQDeBjCyjOqGUgtAABPWwQgMhbiYAAAAABJRU5ErkJggg==" />
+							<span>18-&lt;30</span>
+						</div>
+						<div class="manual-legend-row">
+							<img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAPklEQVQ4je3UIQ4AIABCUdxo3v+oZk26kcHGP8ALBIhw/AYuYDvQBIaAqVjQjj6hFfRjwJAK+r0N75/FwFQHY/kCXRuq9DoAAAAASUVORK5CYII=" />
+							<span>30+</span>
+						</div>
+					</div>
+					<div id="animationViewDiv"></div>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<script src="app.js"></script>
+</body>
+
+</html>
+
+
