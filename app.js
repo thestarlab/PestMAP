@@ -79,6 +79,10 @@
 			{
 				label: "Climate Divisions",
 				value: "climate_divisions"
+			},
+			{
+				label: "Counties",
+				value: "counties"
 			}
 		],
 
@@ -101,6 +105,12 @@
 				"Wyoming": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Wyoming/FeatureServer/2",
 				"Nevada": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Nevada/FeatureServer/1",
 				"Idaho": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Idaho/FeatureServer/0"
+			},
+			// Hosted county shapefile layers.
+			counties: {
+				"Wyoming": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_WY/FeatureServer/0",
+				"Nevada": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_NV/FeatureServer/0",
+				"Idaho": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_ID/FeatureServer/0"
 			}
 		},
 
@@ -108,11 +118,14 @@
 		// per subregion, pest type, and year.
 		// If this is blank, the app tries to read year-specific fields directly
 		// from the boundary polygon attributes, such as sampling_2002 and avg_2002.
-		statsTableUrl: "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_STAT/FeatureServer/0",
+		statsTableUrls: {
+			climate_divisions: "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_STAT/FeatureServer/0",
+			counties: "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_STAT/FeatureServer/0"
+		},
 
 		boundaryFields: {
-			id: "sub_id",
-			name: "sub_name"
+			climate_divisions: { id: "sub_id", name: "sub_name" },
+			counties: { id: "GEOID", name: "NAME" }
 		},
 
 		statsFields: {
@@ -129,6 +142,11 @@
 			samplingCount: "sampling_{year}",
 			averagePestNumber: "avg_{year}",
 			maximumPestNumber: "max_{year}"
+		},
+
+		countyStatsFields: {
+			state: "STATE",
+			countyId: "GEOID"
 		}
 	};
 
@@ -187,8 +205,10 @@
 	let selectedState = "Wyoming";
 	let selectedBio = "";
 	let selectedBoundaryType = "";
+	let selectedBoundaryAttributes = null;
 	let boundaryLayer = null;
 	let statsLayer = null;
+	let statsRequestId = 0;
 	let timeSeriesCharts = [];
 	let pestDensityLayer = null;
 	let environmentalLayers = [];
@@ -211,7 +231,6 @@
 	});
 
 	createDropdownOptions();
-	createStatsLayer();
 	updateMapLayers();
 	updateAnimationLayer(true);
 	updatePestInformation(selectedPest);
@@ -321,33 +340,35 @@
 			selectedPest = event.target.value;
 			pestInfoFilter.value = selectedPest;
 			updatePestInformation(selectedPest);
-			updateMapLayers();
+			updateMapLayers(true);
 		});
 
 		pestInfoFilter.addEventListener("change", function (event) {
 			selectedPest = event.target.value;
 			pestFilter.value = selectedPest;
 			updatePestInformation(selectedPest);
-			updateMapLayers();
+			updateMapLayers(true);
 		});
 
 		yearFilter.addEventListener("change", function (event) {
 			selectedYear = event.target.value;
-			updateMapLayers();
+			updateMapLayers(true);
 		});
 
 		stateFilter.addEventListener("change", function (event) {
 			selectedState = event.target.value;
+			clearSelectedBoundary();
 			updateMapLayers();
 		});
 
 		bioFilter.addEventListener("change", function (event) {
 			selectedBio = event.target.value;
-			updateMapLayers();
+			updateMapLayers(true);
 		});
 
 		boundaryFilter.addEventListener("change", function (event) {
 			selectedBoundaryType = event.target.value;
+			clearSelectedBoundary();
 			updateMapLayers();
 		});
 
@@ -402,7 +423,8 @@
 					return;
 				}
 
-				showSubregionStatistics(boundaryHit.graphic.attributes);
+				selectedBoundaryAttributes = Object.assign({}, boundaryHit.graphic.attributes);
+				showSubregionStatistics(selectedBoundaryAttributes);
 			});
 		});
 	}
@@ -487,7 +509,7 @@
 	// 4. PEST AND ENVIRONMENTAL MAP LAYERS
 	// =====================================================================
 
-	function updateMapLayers() {
+	function updateMapLayers(preserveBoundarySelection) {
 		if (pestDensityLayer) {
 			pestDensityVisible = pestDensityLayer.visible;
 		}
@@ -499,6 +521,10 @@
 		addPestDensityLayer(selectedPest, selectedYear, selectedState);
 		addBoundaryLayer(selectedBoundaryType, selectedState);
 		updateLegendLayerInfos();
+
+		if (preserveBoundarySelection && selectedBoundaryAttributes && selectedBoundaryType) {
+			showSubregionStatistics(selectedBoundaryAttributes);
+		}
 
 		view.goTo({
 			center: appConfig.stateCenters[selectedState],
@@ -754,6 +780,7 @@
 
 	function addBoundaryLayer(boundaryType, state) {
 		boundaryLayer = null;
+		statsLayer = null;
 
 		if (!boundaryType) {
 			summaryContent.innerHTML = "Select a boundary layer and click a subregion to view statistics.";
@@ -790,29 +817,34 @@
 				}
 			},
 			popupTemplate: {
-				title: "{" + appConfig.boundaryFields.name + "}",
+				title: "{" + getBoundaryFields().name + "}",
 				content: "Statistics for this subregion are shown in the Subregion Summary panel."
 			}
 		});
 
 		map.add(boundaryLayer);
+		createStatsLayer(boundaryType);
 		summaryContent.innerHTML = "Click a " + escapeHtml(boundaryLabel.toLowerCase()) + " subregion to view statistics.";
 	}
 
-	function createStatsLayer() {
-		if (!appConfig.statsTableUrl) {
+	function createStatsLayer(boundaryType) {
+		const statsTableUrl = appConfig.statsTableUrls[boundaryType];
+
+		if (!statsTableUrl) {
 			return;
 		}
 
 		statsLayer = new FeatureLayer({
-			url: appConfig.statsTableUrl,
+			url: statsTableUrl,
 			outFields: ["*"]
 		});
 	}
 
 	function showSubregionStatistics(boundaryAttributes) {
-		const subregionId = boundaryAttributes[appConfig.boundaryFields.id];
-		const subregionName = boundaryAttributes[appConfig.boundaryFields.name] || "Selected Subregion";
+		const requestId = ++statsRequestId;
+		const boundaryFields = getBoundaryFields();
+		const subregionId = boundaryAttributes[boundaryFields.id];
+		const subregionName = boundaryAttributes[boundaryFields.name] || "Selected Subregion";
 		const pestLabel = getSelectedPestLabel();
 
 		summaryContent.innerHTML = "<div class='statusText'>Loading statistics for " + escapeHtml(String(subregionName)) + "...</div>";
@@ -820,8 +852,14 @@
 
 		if (statsLayer) {
 			queryStatsTable(subregionId).then(function (rows) {
+				if (requestId !== statsRequestId) {
+					return;
+				}
 				renderSubregionPanel(subregionName, pestLabel, rows);
 			}).catch(function (error) {
+				if (requestId !== statsRequestId) {
+					return;
+				}
 				console.error(error);
 				summaryContent.innerHTML = "Could not load statistics for this subregion.";
 			});
@@ -832,6 +870,10 @@
 	}
 
 	function queryStatsTable(subregionId) {
+		if (selectedBoundaryType === "counties") {
+			return queryCountyStatsTable(subregionId);
+		}
+
 		const fields = appConfig.statsFields;
 		const query = statsLayer.createQuery();
 		const pestStatsValue = getSelectedPestStatsValue();
@@ -856,6 +898,49 @@
 				};
 			});
 		});
+	}
+
+	function queryCountyStatsTable(countyId) {
+		const fields = appConfig.countyStatsFields;
+		const query = statsLayer.createQuery();
+		const countyWhere = isNumericValue(countyId)
+			? fields.countyId + " = " + Number(countyId)
+			: fields.countyId + " = '" + sqlEscape(countyId) + "'";
+
+		query.where = fields.state + " = '" + sqlEscape(appConfig.stateShortNames[selectedState]) +
+			"' AND " + countyWhere;
+		query.outFields = ["*"];
+		query.returnGeometry = false;
+
+		return statsLayer.queryFeatures(query).then(function (result) {
+			if (!result.features.length) {
+				return [];
+			}
+
+			const attributes = result.features[0].attributes;
+			return appConfig.years.map(function (year) {
+				return {
+					year: year,
+					samplingCount: parseStatNumber(getYearStatValue(attributes, year, "sampling_n")),
+					averagePestNumber: parseStatNumber(getYearStatValue(attributes, year, "mean")),
+					maximumPestNumber: parseStatNumber(getYearStatValue(attributes, year, "max"))
+				};
+			}).filter(function (row) {
+				return !isNaN(row.samplingCount) || !isNaN(row.averagePestNumber) || !isNaN(row.maximumPestNumber);
+			});
+		});
+	}
+
+	function getYearStatValue(attributes, year, statistic) {
+		const expectedNames = [year + "_" + statistic, "F" + year + "_" + statistic, "_" + year + "_" + statistic];
+		const actualNames = Object.keys(attributes);
+		const match = actualNames.find(function (name) {
+			return expectedNames.some(function (expectedName) {
+				return name.toLowerCase() === expectedName.toLowerCase();
+			});
+		});
+
+		return match ? attributes[match] : null;
 	}
 
 	function buildRowsFromBoundaryAttributes(attributes) {
@@ -977,6 +1062,12 @@
 		chartWrap.classList.add("hidden");
 	}
 
+	function clearSelectedBoundary() {
+		statsRequestId += 1;
+		selectedBoundaryAttributes = null;
+		clearSubregionChart();
+	}
+
 	// =====================================================================
 	// 7. WIDGETS AND HELPERS
 	// =====================================================================
@@ -1081,6 +1172,10 @@
 		});
 
 		return boundaryType ? boundaryType.label : boundaryTypeValue;
+	}
+
+	function getBoundaryFields() {
+		return appConfig.boundaryFields[selectedBoundaryType] || appConfig.boundaryFields.climate_divisions;
 	}
 
 	function valueOrNoData(value) {
