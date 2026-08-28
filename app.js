@@ -61,7 +61,7 @@
 			"2018", "2019", "2020"
 		],
 
-		states: ["Wyoming", "Nevada", "Idaho"],
+		states: ["Wyoming", "Nevada", "Idaho", "Utah"],
 
 		environmentalFactors: [
 			"Precipitation",
@@ -89,13 +89,15 @@
 		stateShortNames: {
 			"Wyoming": "WY",
 			"Nevada": "NV",
-			"Idaho": "ID"
+			"Idaho": "ID",
+			"Utah": "UT"
 		},
 
 		stateCenters: {
 			"Wyoming": [-107.2903, 43.07597],
 			"Nevada": [-116.4194, 38.8026],
-			"Idaho": [-114.742, 44.0682]
+			"Idaho": [-114.742, 44.0682],
+			"Utah": [-111.0937, 39.321]
 		},
 
 		// ArcGIS Online subregion polygon FeatureLayer URLs by boundary type and state.
@@ -104,13 +106,17 @@
 			climate_divisions: {
 				"Wyoming": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Wyoming/FeatureServer/2",
 				"Nevada": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Nevada/FeatureServer/1",
-				"Idaho": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Idaho/FeatureServer/0"
+				"Idaho": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Idaho/FeatureServer/0",
+				// Add the Utah climate-division FeatureLayer URL after it is uploaded.
+				"Utah": ""
 			},
 			// Hosted county shapefile layers.
 			counties: {
 				"Wyoming": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_WY/FeatureServer/0",
 				"Nevada": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_NV/FeatureServer/0",
-				"Idaho": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_ID/FeatureServer/0"
+				"Idaho": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_ID/FeatureServer/0",
+				// Add the Utah county FeatureLayer URL after it is uploaded.
+				"Utah": ""
 			}
 		},
 
