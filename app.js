@@ -1,4 +1,4 @@
-﻿require([
+require([
 	"esri/Map",
 	"esri/views/MapView",
 	"esri/widgets/BasemapGallery",
@@ -107,16 +107,14 @@
 				"Wyoming": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Wyoming/FeatureServer/2",
 				"Nevada": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Nevada/FeatureServer/1",
 				"Idaho": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Idaho/FeatureServer/0",
-				// Add the Utah climate-division FeatureLayer URL after it is uploaded.
-				"Utah": ""
+				"Utah": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/CLIM_DIVISIONS_Utah/FeatureServer/0"
 			},
 			// Hosted county shapefile layers.
 			counties: {
 				"Wyoming": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_WY/FeatureServer/0",
 				"Nevada": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_NV/FeatureServer/0",
 				"Idaho": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_ID/FeatureServer/0",
-				// Add the Utah county FeatureLayer URL after it is uploaded.
-				"Utah": ""
+				"Utah": "https://services.arcgis.com/b3fMqPOmotX6SV4k/arcgis/rest/services/County_UT/FeatureServer/0"
 			}
 		},
 
@@ -497,14 +495,20 @@
 				const caption = document.createElement("figcaption");
 				caption.textContent = image.label;
 
-				figure.appendChild(img);
+				const photoButton = document.createElement("button");
+				photoButton.type = "button";
+				photoButton.className = "pest-photo-button";
+				photoButton.setAttribute("aria-label", "Enlarge photo: " + img.alt);
+				photoButton.setAttribute("aria-haspopup", "dialog");
+				photoButton.appendChild(img);
+				figure.appendChild(photoButton);
 				figure.appendChild(caption);
 				pestImageGallery.appendChild(figure);
 			});
 		} else {
 			const placeholder = document.createElement("div");
 			placeholder.className = "image-placeholder";
-			placeholder.textContent = "Pest images can be added in app.js";
+			placeholder.textContent = "Photographs are not yet available for this species.";
 			pestImageGallery.appendChild(placeholder);
 		}
 
@@ -516,6 +520,9 @@
 	// =====================================================================
 
 	function updateMapLayers(preserveBoundarySelection) {
+		const currentPest = appConfig.pests.find(function (pest) { return pest.value === selectedPest; });
+		document.getElementById("mapSelectionTitle").textContent =
+			(currentPest ? currentPest.label : selectedPest) + " · " + selectedState + " · " + selectedYear;
 		if (pestDensityLayer) {
 			pestDensityVisible = pestDensityLayer.visible;
 		}
@@ -692,6 +699,11 @@
 		});
 
 		animationYearLabel.textContent = year;
+		document.getElementById("dynamicsMapYear").textContent = year;
+		document.getElementById("dynamicsStartYear").textContent = appConfig.years[0];
+		document.getElementById("dynamicsEndYear").textContent = appConfig.years[appConfig.years.length - 1];
+		animationYearRange.setAttribute("aria-valuetext", year);
+		document.querySelector("#animationLegendDiv .panelTitle").textContent = "Estimated " + pest.label + " Density";
 		animationStatus.textContent = pest.label + " Density in " + statesText + " " + year;
 
 		if (shouldGoToSelectedStates) {
@@ -759,6 +771,8 @@
 		}
 
 		animationPlayButton.textContent = "Pause";
+		document.getElementById("dynamicsPlaybackState").textContent = "Playing";
+		animationPlayButton.classList.add("is-playing");
 		animationTimer = setInterval(function () {
 			animationYearIndex = animationYearIndex + 1;
 
@@ -778,6 +792,8 @@
 		}
 
 		animationPlayButton.textContent = "Play";
+		document.getElementById("dynamicsPlaybackState").textContent = "Paused";
+		animationPlayButton.classList.remove("is-playing");
 	}
 
 	// =====================================================================
@@ -809,6 +825,7 @@
 
 		boundaryLayer = new FeatureLayer({
 			url: boundaryLayerUrl,
+			definitionExpression: boundaryType === "climate_divisions" && state === "Utah" ? "ST_ABBRV = 'UT'" : null,
 			title: state + " " + boundaryLabel + " Boundary",
 			outFields: ["*"],
 			renderer: {
@@ -1005,6 +1022,10 @@
 		}
 
 		summaryContent.innerHTML = html;
+		if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && typeof summaryContent.animate === "function") {
+			summaryContent.getAnimations().forEach(function (animation) { animation.cancel(); });
+			summaryContent.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: "ease-out" });
+		}
 		renderTimeSeriesChart(rows);
 	}
 
@@ -1181,6 +1202,9 @@
 	}
 
 	function getBoundaryFields() {
+		if (selectedBoundaryType === "climate_divisions" && selectedState === "Utah") {
+			return { id: "CD_NEW", name: "NAME" };
+		}
 		return appConfig.boundaryFields[selectedBoundaryType] || appConfig.boundaryFields.climate_divisions;
 	}
 

@@ -24,19 +24,49 @@
 		<button class="tab-button" type="button" data-tab="pestTab">Pest Information</button>
 		<button class="tab-button" type="button" data-tab="mapTab">WebGIS Map</button>
 		<button class="tab-button" type="button" data-tab="animationTab">Pest Dynamics</button>
+		<button class="tab-button" type="button" data-tab="publicationsTab">Publications</button>
 	</nav>
 
 	<main class="tab-layout">
 		<section id="introTab" class="tab-panel active">
-			<div class="content-page">
-				<h1>Project Introduction</h1>
+			<div class="content-page intro-page">
+				<div class="intro-hero">
+					<svg class="intro-contours" viewBox="0 0 600 400" fill="none" aria-hidden="true" focusable="false">
+						<g stroke="currentColor" stroke-width="1.2">
+							<path d="M610 15C420-60 500 120 330 90S100 140 175 280 430 330 490 420"/>
+							<path d="M610 40C440-30 480 145 335 115S130 150 200 275 440 310 515 420"/>
+							<path d="M610 65C460 0 465 170 340 140S160 160 225 270 450 290 540 420"/>
+							<path d="M610 90C480 30 450 195 345 165S190 170 250 265 460 270 565 420"/>
+							<path d="M610 115C500 60 435 220 350 190S220 180 275 260 470 250 590 420"/>
+							<path d="M610 140C520 90 420 245 355 215S250 190 300 255 480 230 615 420"/>
+						</g>
+					</svg>
+					<div class="intro-hero-content">
+						<p class="intro-eyebrow">Project introduction · PestMAP</p>
+						<h1>Exploring pest patterns.<br />Supporting research.</h1>
+						<p class="intro-lead">Explore predicted pest density, environmental context, and changes over time across the western United States.</p>
+						<button type="button" class="intro-cta" data-intro-tab="mapTab">Explore the Map <span aria-hidden="true">↗</span></button>
+					</div>
+					<div class="intro-scope"><span>Pest monitoring</span><span>Spatial predictions</span><span>Long-term dynamics</span></div>
+				</div>
+
+				<div data-scroll-reveal>
+				<h2>About the project</h2>
 				<p>
 					PestMAP is designed to support geospatial monitoring and prediction of agricultural pest activity.
 					The current version focuses on Mormon cricket density estimates and related environmental factors
 					across selected western U.S. states.
 				</p>
 
+				</div>
+				<div data-scroll-reveal>
 				<h2>Using PestMAP</h2>
+				<button type="button" class="publications-shortcut" data-intro-tab="publicationsTab">Related publications <span aria-hidden="true">→</span></button>
+				<div class="intro-cards">
+					<button type="button" class="intro-card" data-intro-tab="pestTab"><span class="intro-card-index">01 / Discover</span><strong>Learn about pests <span aria-hidden="true">↗</span></strong><span>Meet the species behind the maps through descriptions and reference photographs.</span></button>
+					<button type="button" class="intro-card" data-intro-tab="mapTab"><span class="intro-card-index">02 / Explore</span><strong>Explore spatial patterns <span aria-hidden="true">↗</span></strong><span>Compare predicted density with environmental conditions and regional summaries.</span></button>
+					<button type="button" class="intro-card" data-intro-tab="animationTab"><span class="intro-card-index">03 / Track</span><strong>View changes over time <span aria-hidden="true">↗</span></strong><span>Play through annual maps to explore long-term pest population dynamics.</span></button>
+				</div>
 				<p>
 					Use Pest Information to review pest descriptions and reference images. In WebGIS Map, select the
 					pest type, year, state, environmental factor, and boundary layer to compare density estimates with
@@ -45,33 +75,47 @@
 					and selected states.
 				</p>
 
+				</div>
+				<div data-scroll-reveal>
 				<h2>Data And Tools</h2>
 				<ul>
 					<li>Estimated pest density layers hosted in ArcGIS Online.</li>
 					<li>Environmental layers including precipitation, soil moisture, temperature, days 20-35 °C, NDVI, elevation, slope, aspect, and TRI.</li>
-					<li>Climate division boundaries for subregion-level summaries.</li>
+					<li>Climate division and county boundaries for regional summaries.</li>
 					<li>Sampling number, average density, and maximum density summaries with interactive time-series charts.</li>
 					<li>Playback tools for visualizing year-to-year pest density dynamics.</li>
 				</ul>
 
-				<h2>Acknowledgement</h2>
+				</div>
+				<section class="acknowledgement-section" aria-labelledby="acknowledgement-title" data-scroll-reveal>
+				<div class="acknowledgement-copy">
+					<p class="acknowledgement-eyebrow">With appreciation</p>
+					<h2 id="acknowledgement-title">Acknowledgements</h2>
 				<p>
 					This project uses survey-derived pest information, environmental datasets, and ArcGIS Online map
 					services to support research, visualization, and decision-making. Funding provided by
 					USDA-Animal and Plant Health Inspection Service (APHIS) and USDA-Agricultural Research Service
 					(ARS).
 				</p>
+				</div>
 
-				<div class="logo-row" aria-label="Project partner logos">
-					<div class="logo-card">
+				<div class="acknowledgement-institutions" aria-label="Project institutions">
+					<div class="institution-card">
+						<div class="institution-logo">
 						<img src="images/cu_boulder_logo.png" alt="University of Colorado Boulder logo" />
-						<div class="logo-fallback">CU Boulder</div>
+						</div>
+						<div class="institution-name">University of Colorado Boulder</div>
+						<p class="institution-detail">Department of Geography</p>
 					</div>
-					<div class="logo-card">
+					<div class="institution-card">
+						<div class="institution-logo">
 						<img src="images/usda_logo.png" alt="United States Department of Agriculture logo" />
-						<div class="logo-fallback">USDA</div>
+						</div>
+						<div class="institution-name">U.S. Department of Agriculture</div>
+						<p class="institution-detail">Funding provided by APHIS &amp; ARS</p>
 					</div>
 				</div>
+				</section>
 
 				<div class="disclaimer-block">
 					<p>
@@ -96,6 +140,26 @@
 			</div>
 		</section>
 
+		<section id="publicationsTab" class="tab-panel">
+			<div class="content-page publications-page">
+				<p class="publications-eyebrow">Research behind PestMAP</p>
+				<h1>Publications</h1>
+				<p class="publications-intro">Explore research on pest distributions, environmental drivers, and population dynamics.</p>
+				<!-- Add future publications as articles in this list, newest first. -->
+				<div class="publication-list">
+					<article class="publication-card" aria-labelledby="publication-103989">
+						<div class="publication-meta"><span>2026 · Journal article</span><span class="publication-access">Open access</span></div>
+						<h2 id="publication-103989"><a href="https://doi.org/10.1016/j.ecoinf.2026.103989" target="_blank" rel="noopener noreferrer">Modeling the spatiotemporal dynamics of Mormon crickets across the western United States using Bayesian species distribution models</a></h2>
+						<p class="publication-authors">Di Wu, Robert Srygley, Guiye Li, and Guofeng Cao</p>
+						<p class="publication-journal"><cite>Ecological Informatics</cite>, 98, 103989 · September 2026</p>
+						<p class="publication-summary">Uses Bayesian models and 2002–2020 survey data to estimate Mormon cricket density at 1 km resolution across Wyoming, Nevada, and Idaho, examining how environmental conditions relate to population patterns.</p>
+						<ul class="publication-topics" aria-label="Research topics"><li>Mormon cricket</li><li>Species distribution models</li><li>Environmental drivers</li></ul>
+						<div class="publication-links"><a class="publication-read" href="https://www.sciencedirect.com/science/article/pii/S1574954126003961" target="_blank" rel="noopener noreferrer">Read open-access paper <span aria-hidden="true">↗</span><span class="publication-link-note"> (opens in a new tab)</span></a><a class="publication-doi" href="https://doi.org/10.1016/j.ecoinf.2026.103989" target="_blank" rel="noopener noreferrer">DOI: 10.1016/j.ecoinf.2026.103989</a></div>
+					</article>
+				</div>
+			</div>
+		</section>
+
 		<section id="pestTab" class="tab-panel">
 			<div class="content-page pest-page">
 				<div class="section-heading">
@@ -110,36 +174,33 @@
 					<div>
 						<div id="pestImageGallery" class="pest-image-gallery"></div>
 						<div id="pestImageCredit" class="image-credit"></div>
+						<p class="pest-gallery-hint">Select a photograph to enlarge it.</p>
 					</div>
 
-					<div>
+					<div class="pest-profile-details">
+						<p class="pest-kicker">Species profile</p>
 						<h2 id="pestName">Mormon Cricket</h2>
+						<p id="pestScientificName" class="pest-scientific-name"></p>
 						<p id="pestDescription"></p>
 
-						<table class="infoTable">
-							<tr>
-								<th>Scientific Name</th>
-								<td id="pestScientificName"></td>
-							</tr>
-							<tr>
-								<th>Primary Concern</th>
-								<td id="pestConcern"></td>
-							</tr>
-							<tr>
-								<th>Current Map Availability</th>
-								<td id="pestMapAvailability"></td>
-							</tr>
-						</table>
+						<div class="pest-fact"><h3>Agricultural concerns</h3><p id="pestConcern"></p></div>
+						<div class="pest-fact"><h3>Prediction coverage</h3><p id="pestMapAvailability"></p></div>
+						<button type="button" class="intro-cta" data-intro-tab="mapTab">Explore predicted density <span aria-hidden="true">→</span></button>
 					</div>
 				</div>
 			</div>
 		</section>
 
 		<section id="mapTab" class="tab-panel map-panel">
+			<div class="map-selection-heading">
+				<div><span class="map-heading-label">Predicted pest density</span><h1 id="mapSelectionTitle">WebGIS Map</h1></div>
+				<p>Choose a region on the map to explore its summary.</p>
+			</div>
 			<div class="webgis-layout">
 				<aside id="controlDiv" class="selection-sidebar control-panel">
-					<div class="sidebar-title">Map Selections</div>
+					<div class="sidebar-title">Explore the map</div>
 
+					<fieldset class="map-control-group"><legend>Pest &amp; location</legend>
 					<label for="pestSelect">Pest Type</label>
 					<select id="pestSelect" class="esri-select"></select>
 
@@ -148,26 +209,31 @@
 
 					<label for="stateSelect">State</label>
 					<select id="stateSelect" class="esri-select"></select>
+					</fieldset>
 
+					<fieldset class="map-control-group"><legend>Environmental context</legend>
 					<label for="bioSelect">Environmental Factor</label>
 					<select id="bioSelect" class="esri-select"></select>
 
 					<label for="boundarySelect">Boundary</label>
 					<select id="boundarySelect" class="esri-select"></select>
+					</fieldset>
 
+					<fieldset class="map-control-group"><legend>Map appearance</legend>
 					<label for="densityOpacity">Pest Density Transparency</label>
 					<div class="slider-row">
 						<input id="densityOpacity" type="range" min="0" max="100" value="0" />
 						<span id="densityOpacityValue">0%</span>
 					</div>
+					</fieldset>
 
-					<div class="sidebar-note">
+					<details class="sidebar-note map-field-guide"><summary>Layer guide</summary>
 						<div><b>NDVI</b>: Normalized Difference Vegetation Index.</div>
 						<div><b>TRI</b>: Terrain Ruggedness Index.</div>
 						<div><b>Days 20-35 °C</b>: count of days within this temperature range.</div>
 						<div><b>Climate Divisions</b>: NOAA climate regions used as subregions.</div>
 						<div><b>Counties</b>: county boundaries with county-level monitoring statistics.</div>
-					</div>
+					</details>
 				</aside>
 
 				<div class="map-window">
@@ -191,10 +257,15 @@
 		</section>
 
 		<section id="animationTab" class="tab-panel map-panel">
+			<div class="map-selection-heading">
+				<div><span class="map-heading-label">Pest dynamics · Predicted density</span><h1 id="animationStatus">Density over time</h1></div>
+				<p>Explore annual patterns across selected states.</p>
+			</div>
 			<div class="webgis-layout">
 				<aside class="selection-sidebar control-panel playback-panel">
-					<div class="sidebar-title">Playback Controls</div>
+					<div class="sidebar-title">Explore changes over time</div>
 
+					<fieldset class="map-control-group"><legend>Pest &amp; locations</legend>
 					<label for="animationPestSelect">Pest Type</label>
 					<select id="animationPestSelect" class="esri-select"></select>
 
@@ -203,12 +274,15 @@
 						<summary id="animationStateSummary">Wyoming</summary>
 						<div id="animationStateOptions" class="checkbox-group"></div>
 					</details>
+					</fieldset>
 
+					<fieldset class="map-control-group dynamics-timeline"><legend>Timeline &amp; playback</legend>
 					<label for="animationYearRange">Year</label>
 					<div class="slider-row">
 						<input id="animationYearRange" type="range" min="0" max="18" value="0" />
 						<span id="animationYearLabel">2002</span>
 					</div>
+					<div class="dynamics-range"><span id="dynamicsStartYear"></span><span id="dynamicsEndYear"></span></div>
 
 					<label for="animationSpeedSelect">Speed</label>
 					<select id="animationSpeedSelect" class="esri-select">
@@ -218,12 +292,15 @@
 					</select>
 
 					<button id="animationPlayButton" class="action-button" type="button">Play</button>
+					<p class="dynamics-help">Drag the year slider to explore a single year. Playback loops through the available years.</p>
+					</fieldset>
 				</aside>
 
 				<div class="map-window">
 					<div id="animationTitleDiv" class="esri-widget app-panel animation-title-panel">
-						<div class="panelTitle">Density Time Series</div>
-						<div id="animationStatus">Mormon Cricket Density in Wyoming 2002</div>
+						<div class="panelTitle">Selected year</div>
+						<div id="dynamicsMapYear" class="dynamics-map-year">2002</div>
+						<div id="dynamicsPlaybackState" class="dynamics-playback-state">Paused</div>
 					</div>
 					<div id="animationLegendDiv" class="esri-widget app-panel animation-legend-panel">
 						<div class="panelTitle">Estimated Mormon Cricket Density</div>
@@ -255,6 +332,14 @@
 		</section>
 	</main>
 
+	<dialog id="pestPhotoDialog" class="pest-photo-dialog" aria-labelledby="pestPhotoCaption">
+		<form method="dialog"><button class="pest-photo-close" autofocus>Close <span aria-hidden="true">×</span></button></form>
+		<img id="pestPhotoLarge" alt="" />
+		<h2 id="pestPhotoCaption"></h2>
+		<p id="pestPhotoCredit"></p>
+	</dialog>
+	<script src="intro.js"></script>
+	<script src="pest.js"></script>
 	<script src="app.js"></script>
 </body>
 
