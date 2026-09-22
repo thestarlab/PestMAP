@@ -1372,3 +1372,5 @@ body {
  .mobile-map-active .site-header { display: none; }
  .mobile-map-active .map-selection-heading { padding-top: 2px; padding-bottom: 2px; }
 }
+.density-map-hint { margin: 6px 0 0; color: #58656b; font-size: 0.78rem; line-height: 1.5; }
+#showPestDensity { min-height: 44px; border-radius: 6px; }

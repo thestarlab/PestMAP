@@ -413,6 +413,22 @@ require([
 			}
 		});
 
+		document.getElementById("showPestDensity").addEventListener("click", function () {
+			pestDensityVisible = true;
+			pestDensityOpacity = 1;
+			densityOpacitySlider.value = "0";
+			updateDensityOpacityLabel();
+			if (pestDensityLayer) {
+				pestDensityLayer.visible = true;
+				pestDensityLayer.opacity = 1;
+			}
+			view.goTo({ center: appConfig.stateCenters[selectedState], zoom: 7 });
+			const doneButton = document.querySelector("#mapTab .mobile-filter-done");
+			if (doneButton && document.getElementById("mapTab").classList.contains("mobile-filters-open")) {
+				doneButton.click();
+			}
+		});
+
 		view.on("click", function (event) {
 			if (!boundaryLayer) {
 				return;
@@ -1122,7 +1138,7 @@ require([
 		const layerListExpand = new Expand({
 			view: view,
 			content: layerListContainer,
-			expanded: true
+			expanded: !window.matchMedia("(max-width: 760px), (max-height: 500px) and (max-width: 960px)").matches
 		});
 
 		view.ui.add(layerListExpand, "top-right");
