@@ -1311,3 +1311,64 @@ body {
  .dynamics-map-year { font-size: 1.8rem; }
 }
 @media (prefers-reduced-motion: reduce) { #animationTab .action-button { transition: none; } }
+
+/* Phone workspace; desktop controls keep their existing placement. */
+.mobile-map-toolbar, .mobile-control, .mobile-summary-preview,
+.mobile-playback-dock, .mobile-speed-group { display: none; }
+@media (max-width: 760px), (max-height: 500px) and (max-width: 960px) {
+ body { height: 100vh; height: 100dvh; }
+ .site-header, .tab-bar { flex-shrink: 0; }
+ .site-header { padding: 10px 14px; }
+ #titleText { font-size: 1.35rem; line-height: 1.2; }
+ .tagline { font-size: 0.85rem; }
+ .mobile-map-active .tagline { display: none; }
+ .tab-bar { overflow-x: auto; padding: 0 8px; }
+ .tab-button { flex: 0 0 auto; white-space: nowrap; min-height: 44px; padding: 10px; font-size: 0.85rem; }
+ .map-selection-heading { padding: 6px 10px; gap: 8px; }
+ .map-selection-heading > div:first-child { min-width: 0; }
+ .map-heading-label, .map-selection-heading p { display: none; }
+ .map-selection-heading h1 { font-size: 0.85rem; margin: 0; }
+ .mobile-map-toolbar { display: flex; gap: 6px; flex-shrink: 0; }
+ .mobile-control { display: block; min-height: 44px; padding: 8px 12px; border: 1px solid #b9cdd9; border-radius: 6px; background: white; color: #163f58; font: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer; }
+ .mobile-control[aria-expanded='true'] { background: #e4f0f5; }
+ .mobile-control:focus-visible { outline: 2px solid #287b9b; outline-offset: 2px; }
+ .map-panel .webgis-layout { position: relative; display: block; }
+ .map-panel .map-window { height: 100%; }
+ #mapTab .selection-sidebar, #animationTab .selection-sidebar { display: none; position: absolute; inset: 0 0 auto; max-height: 100%; width: 100%; border-bottom: 1px solid #b9cdd9; z-index: 40; overscroll-behavior: contain; box-shadow: 0 6px 18px #163f5826; }
+ #mapTab.mobile-filters-open .selection-sidebar, #animationTab.mobile-filters-open .selection-sidebar { display: block; }
+ .mobile-filter-done { position: sticky; bottom: 0; width: 100%; background: #0f4c81; color: white; }
+ .map-panel .sidebar-title { display: none; }
+ #mapTab .map-control-group select, #animationTab .map-control-group select,
+ .pest-selector select { min-height: 44px; font-size: 16px; }
+ .map-panel input[type='range'] { min-height: 44px; margin: 0; }
+ .map-panel .multi-select summary, .map-panel .checkbox-option, .basemap-switcher-button { box-sizing: border-box; min-height: 44px; }
+ .map-panel .checkbox-option { display: flex; }
+ .map-panel .checkbox-option input { width: 20px; height: 20px; }
+ .map-panel .legend-panel, .map-panel .animation-legend-panel { display: none; }
+ .map-panel.mobile-legend-open .legend-panel, .map-panel.mobile-legend-open .animation-legend-panel { display: block; top: 8px; right: 8px; bottom: auto; width: min(280px, calc(100% - 72px)); max-height: calc(100% - 16px); }
+ #mapTab .summary-panel { width: calc(100vw - 32px); padding: 8px; max-height: min(55dvh, 100%); }
+ #mapTab .summary-panel > .panelTitle { display: none; }
+ .summary-toggle { width: 100%; text-align: left; }
+ .summary-toggle::after { content: '+'; float: right; }
+ .summary-toggle[aria-expanded='true']::after { content: '-'; }
+ .mobile-summary-preview { display: block; font-size: 0.78rem; line-height: 1.4; padding: 6px 4px 0; max-height: 2.8em; overflow: hidden; }
+ #mobileSummaryBody { display: none; }
+ .mobile-expanded #mobileSummaryBody { display: block; }
+ .mobile-expanded .mobile-summary-preview { display: none; }
+ #mapTab .esri-ui-bottom-left { max-height: calc(100% - 12px); }
+ .map-panel .esri-widget--button { width: 44px; height: 44px; }
+ .map-panel .layer-list-panel { width: min(280px, calc(100vw - 90px)); }
+ #animationTab .animation-title-panel { display: none; }
+ #animationViewDiv .esri-ui-top-left { top: 0; }
+ .mobile-playback-dock { display: block; flex-shrink: 0; background: #f8fafc; padding: 4px 10px max(4px, env(safe-area-inset-bottom)); border-top: 1px solid #d7e1e8; }
+ #animationTab .mobile-playback-dock .dynamics-timeline { display: grid; grid-template-columns: minmax(0, 1fr) 76px; align-items: center; gap: 8px; margin: 0; padding: 0; border: 0; background: transparent; }
+ .mobile-playback-dock legend, .mobile-playback-dock label, .mobile-playback-dock .dynamics-range, .mobile-playback-dock .dynamics-help { display: none; }
+ #animationTab .mobile-playback-dock .slider-row { margin: 0; }
+ #animationTab .mobile-playback-dock .action-button { margin: 0; }
+ #animationTab #animationYearLabel { font-size: 1.1rem; }
+ .mobile-speed-group { display: grid; }
+}
+@media (max-height: 500px) and (max-width: 960px) {
+ .mobile-map-active .site-header { display: none; }
+ .mobile-map-active .map-selection-heading { padding-top: 2px; padding-bottom: 2px; }
+}
