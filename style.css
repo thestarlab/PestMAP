@@ -824,6 +824,15 @@ body {
 	z-index: 18;
 }
 
+/* Format ranges without replacing text nodes managed by the ArcGIS widget. */
+.esri-legend__layer-cell--info[data-ascending-range] {
+	font-size: 0;
+}
+.esri-legend__layer-cell--info[data-ascending-range]::after {
+	content: attr(data-ascending-range);
+	font-size: 12px;
+}
+
 .legend-unit {
 	margin-top: -4px;
 	margin-bottom: 7px;
@@ -1013,6 +1022,8 @@ body {
 }
 
 .layer-list-panel {
+	background: #ffffff;
+	color: #1f2933;
 	width: 310px;
 	max-height: 36vh;
 	overflow-y: auto;
@@ -1024,6 +1035,10 @@ body {
 	color: #0f4c81;
 	font-size: 0.86rem;
 	font-weight: 800;
+}
+
+.layer-list-panel > .dynamics-help {
+	margin: 10px 12px 14px;
 }
 
 .layer-list-panel .esri-layer-list {

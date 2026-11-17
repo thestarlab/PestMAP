@@ -203,6 +203,10 @@ require([
 	const animationSpeedFilter = document.getElementById("animationSpeedSelect");
 	const animationPlayButton = document.getElementById("animationPlayButton");
 	const animationStatus = document.getElementById("animationStatus");
+	const animationBioFilter = document.getElementById("animationBioSelect");
+	const animationOpacitySlider = document.getElementById("animationDensityOpacity");
+	const animationOpacityValue = document.getElementById("animationDensityOpacityValue");
+	const animationToggleDensity = document.getElementById("animationToggleDensity");
 
 	let selectedPest = appConfig.pests[0].value;
 	let selectedYear = "2002";
@@ -224,7 +228,15 @@ require([
 	let animationYearIndex = 0;
 	let animationLayerCache = {};
 	let animationTimer = null;
-	const animationDensityOpacity = 0.78;
+	let animationDensityOpacity = 0.78;
+	let animationBio = "";
+	let animationEnvironmentCache = {};
+	let animationEnvironmentLayers = [];
+	let animationEnvironmentLegend = null;
+	let animationEnvironmentLegendNode = null;
+	const animationEnvironmentVisibility = {};
+	let updatingAnimationEnvironment = false;
+	let animationDensityHidden = false;
 
 	const animationMap = new Map({ basemap: "topo-vector" });
 	const animationView = new MapView({
@@ -264,6 +276,7 @@ require([
 		createAnimationStateCheckboxes();
 
 		addOption(bioFilter, "", "None");
+		addOption(animationBioFilter, "", "None");
 
 		appConfig.environmentalFactors.forEach(function (factor) {
 			let label = factor;
@@ -277,6 +290,7 @@ require([
 			}
 
 			addOption(bioFilter, factor, label);
+			addOption(animationBioFilter, factor, label);
 		});
 
 		addOption(boundaryFilter, "", "None");
@@ -379,6 +393,27 @@ require([
 		animationPestFilter.addEventListener("change", function (event) {
 			animationPest = event.target.value;
 			updateAnimationLayer(true);
+		});
+
+		animationBioFilter.addEventListener("change", function () {
+			animationBio = animationBioFilter.value;
+			Object.values(animationEnvironmentCache).forEach(function (layer) {
+				animationMap.remove(layer);
+				layer.destroy();
+			});
+			animationEnvironmentCache = {};
+			updateAnimationLayer(false);
+		});
+		animationOpacitySlider.addEventListener("input", function () {
+			animationDensityOpacity = 1 - Number(animationOpacitySlider.value) / 100;
+			animationOpacityValue.textContent = animationOpacitySlider.value + "%";
+			updateAnimationLayer(false);
+		});
+		animationToggleDensity.addEventListener("click", function () {
+			animationDensityHidden = !animationDensityHidden;
+			animationToggleDensity.textContent = animationDensityHidden ? "Show pest density" : "Hide pest density";
+			animationToggleDensity.setAttribute("aria-pressed", String(animationDensityHidden));
+			updateAnimationLayer(false);
 		});
 
 		animationStateOptions.addEventListener("change", function () {
@@ -561,7 +596,7 @@ require([
 		});
 	}
 
-	function addEnvironmentalLayer(year, state, bio) {
+	function addEnvironmentalLayer(year, state, bio, createLayer) {
 		// A blank environmental factor means only the pest density layer is shown.
 		if (!bio) {
 			return;
@@ -572,8 +607,8 @@ require([
 		const currentYearFactors = ["Days 20-35 C"];
 
 		function addEnvironmentalTileLayer(serviceName, title) {
-			const layer = addTileLayer(serviceName, title);
-			environmentalLayers.push(layer);
+			const layer = createLayer ? createLayer(serviceName, title) : addTileLayer(serviceName, title);
+			if (!createLayer) environmentalLayers.push(layer);
 			return layer;
 		}
 
@@ -660,32 +695,42 @@ require([
 
 	function formatEnvironmentalLegendRanges() {
 		window.requestAnimationFrame(function () {
-			const legendContainer = document.getElementById("legendDiv");
-			if (!legendContainer) {
-				return;
-			}
-
-			const environmentalTitles = environmentalLayers.map(function (layer) {
-				return layer.title;
-			});
-
-			legendContainer.querySelectorAll(".esri-legend__service").forEach(function (service) {
-				const serviceTitle = service.querySelector(".esri-legend__service-label");
-				if (!serviceTitle || !environmentalTitles.includes(serviceTitle.textContent.trim())) {
-					return;
-				}
-
-				service.querySelectorAll(".esri-legend__layer-cell--info").forEach(function (label) {
-					const rangeMatch = label.textContent.trim().match(/^(-?[\d,.]+)\s*(?:-|–|—|to)\s*(-?[\d,.]+)$/i);
-					if (!rangeMatch) {
-						return;
-					}
-
-					const firstValue = Number(rangeMatch[1].replace(/,/g, ""));
-					const secondValue = Number(rangeMatch[2].replace(/,/g, ""));
-					if (firstValue > secondValue) {
-						label.textContent = rangeMatch[2] + " - " + rangeMatch[1];
-					}
+			["legendDiv", "animationLegendDiv"].forEach(function (containerId) {
+				const legendContainer = document.getElementById(containerId);
+				if (!legendContainer) return;
+				const layers = containerId === "legendDiv" ? environmentalLayers : animationEnvironmentLayers;
+				const environmentalTitles = layers.map(function (layer) { return layer.title; });
+				legendContainer.querySelectorAll(".esri-legend__service").forEach(function (service) {
+					const serviceTitle = service.querySelector(".esri-legend__service-label");
+					if (!serviceTitle || !environmentalTitles.includes(serviceTitle.textContent.trim())) return;
+					const isWyoming = /\bWyoming\b/.test(serviceTitle.textContent);
+					service.querySelectorAll(".esri-legend__layer-cell--info").forEach(function (label) {
+						const originalLabel = label.textContent.trim();
+						let formattedLabel = originalLabel;
+						const rangeMatch = originalLabel.match(/^(-?[\d,.]+)\s*(?:-|\u2013|\u2014|to)\s*(-?[\d,.]+)$/i);
+						if (rangeMatch && Number(rangeMatch[1].replace(/,/g, "")) > Number(rangeMatch[2].replace(/,/g, ""))) {
+							formattedLabel = rangeMatch[2] + " - " + rangeMatch[1];
+						}
+						if (isWyoming) {
+							// Normalize range separators before rounding negative numbers.
+							if (rangeMatch) {
+								const values = [rangeMatch[1], rangeMatch[2]].map(function (value) { return Number(value.replace(/,/g, "")); });
+								formattedLabel = Math.min(...values).toFixed(2) + " - " + Math.max(...values).toFixed(2);
+							} else {
+								formattedLabel = formattedLabel.replace(/-?(?:\d[\d,]*(?:\.\d+)?|\.\d+)(?:e[+-]?\d+)?/gi, function (value) {
+									return Number(value.replace(/,/g, "")).toFixed(2);
+								});
+							}
+						}
+						if (formattedLabel !== originalLabel) {
+							// Preserve ArcGIS-owned text nodes during widget redraws.
+							label.setAttribute("data-ascending-range", formattedLabel);
+							label.setAttribute("aria-label", formattedLabel);
+						} else {
+							label.removeAttribute("data-ascending-range");
+							label.removeAttribute("aria-label");
+						}
+					});
 				});
 			});
 		});
@@ -704,6 +749,7 @@ require([
 		const statesText = animationStates.join(", ");
 
 		preloadAnimationLayers(pest);
+		updateAnimationEnvironment(year);
 
 		Object.keys(animationLayerCache).forEach(function (key) {
 			const layerInfo = animationLayerCache[key];
@@ -711,7 +757,8 @@ require([
 				layerInfo.year === year &&
 				animationStates.includes(layerInfo.state);
 
-			layerInfo.layer.opacity = shouldShow ? animationDensityOpacity : 0;
+			layerInfo.layer.opacity = shouldShow && !animationDensityHidden ? animationDensityOpacity : 0;
+			layerInfo.layer.visible = shouldShow && !animationDensityHidden;
 		});
 
 		animationYearLabel.textContent = year;
@@ -721,9 +768,73 @@ require([
 		animationYearRange.setAttribute("aria-valuetext", year);
 		document.querySelector("#animationLegendDiv .panelTitle").textContent = "Estimated " + pest.label + " Density";
 		animationStatus.textContent = pest.label + " Density in " + statesText + " " + year;
+		if (animationBio) animationStatus.textContent += " · " + animationBioFilter.selectedOptions[0].textContent;
 
 		if (shouldGoToSelectedStates) {
 			animationView.goTo(getAnimationViewTarget());
+		}
+	}
+
+	function updateAnimationEnvironment(year) {
+		updatingAnimationEnvironment = true;
+		Object.values(animationEnvironmentCache).forEach(function (layer) {
+			layer.visible = false;
+			layer.listMode = "hide";
+		});
+		animationEnvironmentLayers = [];
+		animationStates.forEach(function (state) {
+			addEnvironmentalLayer(year, state, animationBio, function (serviceName, title) {
+				// Carry each state's seasonal choice forward during year playback.
+				const visibilityKey = serviceName.replace(/_\d{4}(?=_|$)/g, "");
+				let layer = animationEnvironmentCache[serviceName];
+				if (!layer) {
+					layer = new TileLayer({
+						url: "https://tiles.arcgis.com/tiles/b3fMqPOmotX6SV4k/arcgis/rest/services/" + serviceName + "/MapServer",
+						title: title,
+						visible: false,
+						listMode: "hide"
+					});
+					animationEnvironmentCache[serviceName] = layer;
+					layer.watch("visible", function (visible) {
+						if (!updatingAnimationEnvironment) {
+							animationEnvironmentVisibility[visibilityKey] = visible;
+						}
+					});
+					animationMap.add(layer, 0);
+				}
+				// Preserve the same seasonal stacking as the WebGIS map, below pest density.
+				animationMap.reorder(layer, animationEnvironmentLayers.length);
+				layer.listMode = "hide-children";
+				layer.visible = animationEnvironmentVisibility[visibilityKey] !== false;
+				animationEnvironmentLayers.push(layer);
+				return layer;
+			});
+		});
+		updatingAnimationEnvironment = false;
+		if (animationEnvironmentLegendNode) {
+			const layerInfos = animationEnvironmentLayers.map(function (layer) {
+				return { layer: layer, title: layer.title };
+			});
+			if (!layerInfos.length) {
+				// Never create an empty legend: ArcGIS would include every cached layer.
+				if (animationEnvironmentLegend) animationEnvironmentLegend.destroy();
+				animationEnvironmentLegend = null;
+				animationEnvironmentLegendNode.replaceChildren();
+				animationEnvironmentLegendNode.hidden = true;
+			} else {
+				animationEnvironmentLegendNode.hidden = false;
+				if (!animationEnvironmentLegend) {
+					const legendNode = document.createElement("div");
+					animationEnvironmentLegendNode.appendChild(legendNode);
+					animationEnvironmentLegend = new Legend({
+						view: animationView,
+						container: legendNode,
+						layerInfos: layerInfos
+					});
+				} else {
+					animationEnvironmentLegend.layerInfos = layerInfos;
+				}
+			}
 		}
 	}
 
@@ -742,6 +853,8 @@ require([
 					url: "https://tiles.arcgis.com/tiles/b3fMqPOmotX6SV4k/arcgis/rest/services/" + serviceName + "/MapServer",
 					title: pest.label + " Density in " + state + " " + year,
 					opacity: 0,
+					visible: false,
+					legendEnabled: false,
 					listMode: "hide"
 				});
 
@@ -1118,6 +1231,29 @@ require([
 	function createWidgets() {
 		view.ui.add(createBasemapExpand(view, map), "top-left");
 		animationView.ui.add(createBasemapExpand(animationView, animationMap), "top-left");
+		animationEnvironmentLegendNode = document.createElement("div");
+		animationEnvironmentLegendNode.hidden = true;
+		document.getElementById("animationLegendDiv").appendChild(animationEnvironmentLegendNode);
+		const animationLayerListContainer = document.createElement("div");
+		animationLayerListContainer.className = "layer-list-panel";
+		const animationLayerListTitle = document.createElement("div");
+		animationLayerListTitle.className = "layer-list-title";
+		animationLayerListTitle.textContent = "Environmental Layer Visibility";
+		animationLayerListContainer.appendChild(animationLayerListTitle);
+		const animationLayerListHelp = document.createElement("p");
+		animationLayerListHelp.className = "dynamics-help";
+		animationLayerListHelp.textContent = "Select an environmental factor, then use the eye icons below to show or hide individual images.";
+		animationLayerListContainer.appendChild(animationLayerListHelp);
+		const animationLayerListNode = document.createElement("div");
+		animationLayerListContainer.appendChild(animationLayerListNode);
+		new LayerList({ view: animationView, container: animationLayerListNode });
+		animationView.ui.add(new Expand({
+			view: animationView,
+			content: animationLayerListContainer,
+			expandTooltip: "Environmental Layer Visibility",
+			collapseTooltip: "Hide layer visibility controls",
+			expanded: true
+		}), "top-right");
 
 		const layerListContainer = document.createElement("div");
 		layerListContainer.className = "layer-list-panel";
@@ -1149,13 +1285,16 @@ require([
 			layerInfos: []
 		});
 
-		const legendContainer = document.getElementById("legendDiv");
+		["legendDiv", "animationLegendDiv"].forEach(function (containerId) {
+		const legendContainer = document.getElementById(containerId);
 		if (legendContainer) {
 			new MutationObserver(formatEnvironmentalLegendRanges).observe(legendContainer, {
 				childList: true,
+				characterData: true,
 				subtree: true
 			});
 		}
+		});
 
 		updateLegendLayerInfos();
 
